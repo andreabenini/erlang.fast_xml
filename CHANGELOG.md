@@ -1,3 +1,55 @@
+# Version 1.1.36
+
+* Updating p1_utils to version 1.0.15.
+
+# Version 1.1.35
+
+* Updating p1_utils to version 1.0.14.
+* Add contribution guide
+
+# Version 1.1.34
+
+* Updating p1_utils to version 1.0.13.
+
+# Version 1.1.33
+
+* Updating p1_utils to version 6ff85e8.
+* Fix incompatibility with OTP21
+
+# Version 1.1.32
+
+* Don't crash when trying to encode xmlcdata
+
+# Version 1.1.31
+
+* Updating p1_utils to version 1.0.12.
+
+# Version 1.1.30
+
+* Improve detection of rebar3
+* Define p1\_utils as application dependency
+
+# Version 1.1.29
+
+* Updating p1_utils to version 1.0.11.
+* Fix compilation with rebar3
+* Get rid of $\_xmls label
+
+# Version 1.1.28
+* Include Makefile in package generated for hex
+
+# Version 1.1.27
+
+* Freeze dependencies in mix.lock file to be more friendly with hex.pm
+* Fix ambiguous Elixir syntax in mix.exs
+
+# Version 1.1.26
+
+* Simplify pretty printer generation
+* Generate get_els/1 and set_els/2
+* The pretty printer should traverse elements recursively
+* Extra test for too big input
+
 # Version 1.1.25
 
 * Invalidate sotred data when generating stanza-too-big-error
