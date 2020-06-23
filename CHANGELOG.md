@@ -1,3 +1,26 @@
+# Version 1.1.41
+
+* Updating p1_utils to version 1.0.19.
+
+# Version 1.1.40
+
+* Fix issues with travis testing
+
+# Version 1.1.39
+
+* Updating p1_utils to version 1.0.18.
+* Update copyright year
+
+# Version 1.1.38
+
+* Updating p1_utils to version 1.0.17.
+
+# Version 1.1.37
+
+* Updating p1_utils to version 1.0.16.
+* Update XMLRPC codec
+* Fail with 'badarg' on unknown records
+
 # Version 1.1.36
 
 * Updating p1_utils to version 1.0.15.
