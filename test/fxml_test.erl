@@ -5,7 +5,7 @@
 %%% Created : 17 Dec 2013 by Evgeny Khramtsov <ekhramtsov@process-one.net>
 %%%
 %%%
-%%% Copyright (C) 2002-2021 ProcessOne, SARL. All Rights Reserved.
+%%% Copyright (C) 2002-2022 ProcessOne, SARL. All Rights Reserved.
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -47,6 +47,10 @@ start_test() ->
 tag_test() ->
     ?assertEqual(#xmlel{name = <<"root">>},
 		 fxml_stream:parse_element(<<"<root/>">>)).
+
+cve_2022_25236_test() ->
+    ?assertEqual({error, {2, <<"syntax error">>}},
+		 fxml_stream:parse_element(<<"<a><d xmlns='b&#xA;c' /><d:c xmlns:d='b' /></a>">>)).
 
 empty_tag_test() ->
     ?assertEqual(#xmlel{name = <<"root">>},
