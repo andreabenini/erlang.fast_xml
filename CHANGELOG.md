@@ -1,3 +1,11 @@
+# Version 1.1.51
+
+* Fix hex release scripts
+
+# Version 1.1.50
+
+* Fix `make spec` on OTP >= 25
+
 # Version 1.1.49
 
 * Updating p1_utils to version 1.0.25.
