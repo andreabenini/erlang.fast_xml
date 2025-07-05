@@ -5,7 +5,7 @@
 %%% Created : 22 Jun 2009 by Evgeniy Khramtsov <ekhramtsov@process-one.net>
 %%%
 %%%
-%%% Copyright (C) 2002-2024 ProcessOne, SARL. All Rights Reserved.
+%%% Copyright (C) 2002-2025 ProcessOne, SARL. All Rights Reserved.
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -4219,11 +4219,17 @@ t_from_form(Spec) ->
 -endif.
 -endif.
 
+-ifdef(OTP_RELEASE_MINOR_28).
 t_remote(Mod, Type) ->
     D = dict_from_list([{{opaque, Type, []},
 			 {{Mod, 1, 2, []}, type}}]),
     [T] = erl_types:t_opaque_from_records(D),
     T.
+-else.
+t_remote(Mod, Type) ->
+    erl_types:t_nominal({Mod, Type, 0, opaque}, opaque).
+-endif.
+
 -endif.
 
 -ifdef(USE_DICT).
