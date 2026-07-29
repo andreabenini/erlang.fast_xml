@@ -1,3 +1,24 @@
+# Version 1.1.60
+
+* Fix compilation warning on recent gcc
+
+# Version 1.1.59
+
+* Add ability to limit number of elements in accepted stanzas
+* Add ability to change stanza limits after stream initialization
+
+# Version 1.1.58
+
+* Updating p1_utils to version 1.0.29.
+* Fix new deprecation in R29
+* Improve tests
+ 
+
+# Version 1.1.57
+
+* Updating p1_utils to version 1.0.28.
+* Fix compatibility with Erlang 28
+
 # Version 1.1.56
 
 * Updating p1_utils to version 1.0.27.

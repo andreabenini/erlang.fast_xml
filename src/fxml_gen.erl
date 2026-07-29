@@ -5,7 +5,7 @@
 %%% Created : 22 Jun 2009 by Evgeniy Khramtsov <ekhramtsov@process-one.net>
 %%%
 %%%
-%%% Copyright (C) 2002-2025 ProcessOne, SARL. All Rights Reserved.
+%%% Copyright (C) 2002-2026 ProcessOne, SARL. All Rights Reserved.
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -56,10 +56,11 @@ compile(Path) ->
     compile(Path, []).
 
 compile(Path, Opts) ->
-    case catch do_compile(Path, Opts) of
+    try do_compile(Path, Opts) of
         ok ->
-            ok;
-        Err ->
+            ok
+    catch
+        _:Err ->
             io:format("failed to compile ~p: ~p~n", [Path, Err]),
             Err
     end.
@@ -518,7 +519,7 @@ make_aux_funs() ->
         {ok, AbsCode} ->
 	    lists:filter(
 	      fun(T) ->
-                      case catch erl_syntax_lib:analyze_function(T) of
+                      try erl_syntax_lib:analyze_function(T) of
                           {format_error, 1} -> true;
 			  {io_format_error, 1} -> true;
 			  {get_attr, 3} -> true;
@@ -527,7 +528,9 @@ make_aux_funs() ->
 			  {register_module, 2} -> true;
 			  {unregister_module, 2} -> true;
 			  {recompile_resolver, 2} -> true;
-                          _ -> false
+			  _ -> false
+                      catch
+                          _:_ -> false
                       end
               end, AbsCode);
         error ->
@@ -539,13 +542,15 @@ make_builtin_codec_funs() ->
         {ok, AbsCode} ->
 	    lists:filter(
 	      fun(T) ->
-                      case catch erl_syntax_lib:analyze_function(T) of
+                      try erl_syntax_lib:analyze_function(T) of
                           {dec_int, 3} -> true;
                           {dec_int, 1} -> true;
                           {dec_enum, 2} -> true;
                           {enc_int, 1} -> true;
                           {enc_enum, 1} -> true;
                           _ -> false
+                      catch
+                          _:_ -> false
                       end
               end, AbsCode);
         error ->
@@ -3096,12 +3101,13 @@ get_json_type2(FType) ->
                                     {list, get_json_type2(erl_types:t_list_elements(FType))};
                                 false ->
                                     Undefined = erl_types:t_atom(undefined),
-                                    case catch erl_types:t_elements(FType) of
+                                    try erl_types:t_elements(FType) of
                                         [Undefined, T] ->
                                             {option, get_json_type2(T), undefined};
                                         [_, _ | _] ->
-                                            {todo, FType};
-                                        _ ->
+                                            {todo, FType}
+                                    catch
+                                        _:_ ->
                                             case erl_types:t_is_any(FType) of
                                                 true ->
                                                     {todo, FType};
@@ -3271,15 +3277,16 @@ make_decoding_MFA(Parents, TagName, _TagNS, AttrName,
                     Body;
                 _ ->
 		    BadVal = erl_syntax:atom("bad_" ++ Type ++ "_value"),
-                    erl_syntax:case_expr(
-                      erl_syntax:catch_expr(Body),
+                    erl_syntax:try_expr(
+                      [Body],
+                      [erl_syntax:clause([?AST(_res)], none, [?AST(_res)])],
                       [erl_syntax:clause(
-                         [?AST({'EXIT', _})],
+                         [?AST(error:_)],
                          none,
                          [?AST(erlang:error(
 				 {'?a(ModName)', {'?BadVal', '?a(AttrName)',
-						  '?a(TagName)', __TopXMLNS}}))]),
-                       erl_syntax:clause([?AST(_res)], none, [?AST(_res)])])
+						  '?a(TagName)', __TopXMLNS}}))])]
+                     )
             end,
     Clause2 = erl_syntax:clause(
 		[?AST(__TopXMLNS),
@@ -3707,7 +3714,12 @@ build_ref_deps(TaggedElems) ->
     G.
 
 get_abstract_code_from_myself() ->
-    {file, File} = code:is_loaded(?MODULE),
+    File = case code:is_loaded(?MODULE) of
+        {file, cover_compiled} ->
+             filename:join(code:lib_dir(fast_xml), "ebin/fxml_gen.beam");
+        {file, FF} ->
+             FF
+    end,
     case beam_lib:chunks(File, [abstract_code]) of
         {ok, {_, List}} ->
             case lists:keyfind(abstract_code, 1, List) of
@@ -4035,11 +4047,12 @@ consult(Path) ->
             Str = lists:map(
                     fun(Tree) ->
                             AbsForm = erl_syntax:revert_forms(Tree),
-                            case catch erl_eval:exprs(AbsForm, []) of
-                                {'EXIT', _} ->
-                                    [];
+                            try erl_eval:exprs(AbsForm, []) of
                                 {value, Term, _} ->
                                     [io_lib:print(Term), $., io_lib:nl()]
+                            catch
+                                error:_ ->
+                                    []
                             end
                     end, Terms),
             Res = case file:write_file(TmpFile, Str) of
@@ -4053,7 +4066,9 @@ consult(Path) ->
                       Err ->
                           Err
                   end,
-            catch file:delete(TmpFile),
+            try file:delete(TmpFile)
+            catch _:_ -> error
+            end,
             Res;
         Err ->
             Err

@@ -5,7 +5,7 @@
 %%% Created : 17 Dec 2013 by Evgeny Khramtsov <ekhramtsov@process-one.net>
 %%%
 %%%
-%%% Copyright (C) 2002-2025 ProcessOne, SARL. All Rights Reserved.
+%%% Copyright (C) 2002-2026 ProcessOne, SARL. All Rights Reserved.
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -419,6 +419,37 @@ too_big_with_data_after_test() ->
 		   <<"</foo></start>">>,
 		   [{xmlstreamerror, <<"XML stanza is too big">>}]
 		 }]).
+		
+too_much_elements_test() ->
+    CallbackPid = spawn_link(fun() -> receiver([]) end),
+    Stream0 = new(CallbackPid, {infinity, 3}),
+    Stream1 = fxml_stream:parse(Stream0, <<"<a>">>),
+    Stream2 = fxml_stream:parse(Stream1, <<"<b/>">>),
+    Stream3 = fxml_stream:parse(Stream2, <<"<b><c/></b>">>),
+    Stream4 = fxml_stream:parse(Stream3, <<"<b><c/><d/></b>">>),
+    Stream5 = fxml_stream:parse(Stream4, <<"<b/>">>),
+    ?assertEqual([{xmlstreamstart, <<"a">>, []},
+		  {xmlstreamelement, #xmlel{name = <<"b">>}},
+		  {xmlstreamelement, #xmlel{name = <<"b">>, children = [#xmlel{name = <<"c">>}]}},
+		  {xmlstreamerror, <<"XML stanza is too big">>},
+		  {xmlstreamerror, <<"XML stanza is too big">>}],
+		 collect_events(CallbackPid)),
+    close(Stream5).
+	
+runtime_limits_change_test() ->
+    CallbackPid = spawn_link(fun() -> receiver([]) end),
+    Stream0 = new(CallbackPid, {infinity, 3}),
+    Stream1 = fxml_stream:parse(Stream0, <<"<a>">>),
+    Stream2 = fxml_stream:parse(Stream1, <<"<b/>">>),
+    Stream3 = fxml_stream:parse(Stream2, <<"<b><c/></b>">>),
+	ok = fxml_stream:change_limits(Stream3, infinity, infinity),
+    Stream4 = fxml_stream:parse(Stream3, <<"<b><c/><d/></b>">>),
+    ?assertEqual([{xmlstreamstart, <<"a">>, []},
+		  {xmlstreamelement, #xmlel{name = <<"b">>}},
+		  {xmlstreamelement, #xmlel{name = <<"b">>, children = [#xmlel{name = <<"c">>}]}},
+		  {xmlstreamelement, #xmlel{name = <<"b">>, children = [#xmlel{name = <<"c">>}, #xmlel{name = <<"d">>}]}}],
+		 collect_events(CallbackPid)),
+    close(Stream4).
 
 close_close_test() ->
     Stream = new(),
@@ -1074,3 +1105,9 @@ rpc_empty_response_test() ->
     Result = {response, []},
     ?assertEqual({ok, Result}, fxmlrpc:decode(Response)),
     ?assertEqual(Response, fxmlrpc:encode(Result)).
+
+compile_spec_test() ->
+    Res = fxml_gen:compile("spec/fxmlrpc_codec.spec",
+                          [{erl_dir, "src"},
+                           {hrl_dir, "include"}]),
+    ?assertEqual(ok, Res).

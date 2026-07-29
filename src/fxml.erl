@@ -5,7 +5,7 @@
 %%% Created : 20 Nov 2002 by Alexey Shchepin <alexey@process-one.net>
 %%%
 %%%
-%%% Copyright (C) 2002-2025 ProcessOne, SARL. All Rights Reserved.
+%%% Copyright (C) 2002-2026 ProcessOne, SARL. All Rights Reserved.
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -52,9 +52,10 @@ load_nif() ->
     load_nif(SOPath).
 
 load_nif(SOPath) ->
-    case catch erlang:load_nif(SOPath, 0) of
-        ok -> ok;
-        Err -> error_logger:warning_msg("unable to load fxml NIF: ~p~n", [Err]),
+    try erlang:load_nif(SOPath, 0) of
+        ok -> ok
+    catch
+        _:Err -> error_logger:warning_msg("unable to load fxml NIF: ~p~n", [Err]),
                {error, unable_to_load_nif}
     end.
 
